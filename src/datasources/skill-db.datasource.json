@@ -1,0 +1,6 @@
+{
+  "name": "skillDB",
+  "connector": "memory",
+  "localStorage": "",
+  "file": "./data/db.json"
+}

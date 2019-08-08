@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: technologies-app
+  namespace: x
+spec:
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: technologies-app
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: technologies-app
+    spec:
+      containers:
+        - name: technologies-app
+          image: docker-registry.eng.gomycode.co:443/gomycode/technologies-dev:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3000
+          env:
+            - name: NODE_ENV
+              value: "dev"
+      imagePullSecrets:
+        - name: gomycode-registry-creds
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: technologies-app
+  namespace: x
+  labels:
+    app: technologies-app
+spec:
+  ports:
+    - name: http
+      port: 3000
+      protocol: TCP
+      targetPort: 3000
+  selector:
+    app: technologies-app
+  type: ClusterIP
+
+---
+
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: technologies-app
+  namespace: x
+spec:
+  tls:
+    - hosts:
+        - technologies-api.gomycode.co
+      secretName: default-tls-gomycode-co
+  rules:
+    - host: technologies-api.gomycode.co
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: technologies-app
+              servicePort: 3000
